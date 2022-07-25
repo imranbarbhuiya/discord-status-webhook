@@ -33,12 +33,12 @@ function embedFromIncident(incident: StatusPageIncident) {
 		incident.status === 'resolved' || incident.status === 'postmortem'
 			? EMBED_COLOR_GREEN
 			: incident.impact === 'critical'
-			? EMBED_COLOR_RED
-			: incident.impact === 'major'
-			? EMBED_COLOR_ORANGE
-			: incident.impact === 'minor'
-			? EMBED_COLOR_YELLOW
-			: EMBED_COLOR_BLACK;
+				? EMBED_COLOR_RED
+				: incident.impact === 'major'
+					? EMBED_COLOR_ORANGE
+					: incident.impact === 'minor'
+						? EMBED_COLOR_YELLOW
+						: EMBED_COLOR_BLACK;
 
 	const affectedNames = incident.components.map((c) => c.name);
 
@@ -97,6 +97,7 @@ async function updateIncident(incident: StatusPageIncident, messageID?: string) 
 
 async function check() {
 	logger.info('heartbeat');
+
 	try {
 		const json = (await fetch(`${API_BASE}/incidents.json`).then((r) => r.json())) as StatusPageResult;
 		const { incidents } = json;

@@ -35,3 +35,5 @@ data/
 # lint cache
 .eslintcache
 .prettiercache
+
+data.sqlite
