@@ -15,7 +15,8 @@
 		"deploy": "node --unhandled-rejections=strict --enable-source-maps .",
 		"lint": "eslint src --ext .ts --cache --fix",
 		"format": "prettier --write \"**/*.{ts,js,json,yml,yaml}\" --cache",
-		"postinstall": "husky install .github/husky"
+		"postinstall": "husky install .github/husky",
+		"typecheck": "tsc -p tsconfig.eslint.json"
 	},
 	"keywords": [
 		"discord",

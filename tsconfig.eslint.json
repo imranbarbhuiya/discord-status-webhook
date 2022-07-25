@@ -1,8 +1,9 @@
 {
 	"extends": "./tsconfig.json",
 	"compilerOptions": {
-		"allowJs": true
+		"noEmit": true,
+		"incremental": false,
+		"lib": ["esnext", "dom"]
 	},
-	"include": ["**/*.ts", "**/*.js", "**/*.test.ts", "**/*.test.js", "**/*.spec.ts", "**/*.spec.js"],
-	"exclude": []
+	"include": ["src", "tsup.config.ts"]
 }

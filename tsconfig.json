@@ -2,20 +2,15 @@
 	"compilerOptions": {
 		"strict": true,
 		"moduleResolution": "node",
-		"module": "commonjs",
+		"module": "esnext",
 		"target": "es2019",
-		"lib": ["esnext", "esnext.array", "esnext.asynciterable", "esnext.intl", "esnext.symbol"],
-		"declaration": true,
-		"sourceMap": true,
-		"removeComments": false,
+		"lib": ["esnext"],
 		"alwaysStrict": true,
 		"pretty": true,
-		"outDir": "dist",
 		"incremental": true,
-		"noEmitHelpers": true,
 		"importHelpers": true,
-		"skipLibCheck": true,
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"noEmit": true
 	},
 	"exclude": ["**/*.test.ts"]
 }
