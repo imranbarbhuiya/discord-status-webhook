@@ -1,0 +1,5 @@
+{
+	"root": true,
+	"extends": "@sapphire",
+	"ignorePatterns": ["**/dist/*"]
+}

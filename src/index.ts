@@ -1,8 +1,8 @@
-import { WebhookClient, MessageEmbed } from 'discord.js';
-import fetch from 'node-fetch';
-import { StatusPageIncident, StatusPageResult } from './interfaces/StatusPage';
-import { DateTime } from 'luxon';
+import { WebhookClient, EmbedBuilder } from 'discord.js';
+import { fetch } from 'undici';
 import Keyv from 'keyv';
+
+import type { StatusPageIncident, StatusPageResult } from './interfaces/StatusPage';
 import {
 	EMBED_COLOR_GREEN,
 	EMBED_COLOR_RED,
@@ -12,7 +12,6 @@ import {
 	API_BASE,
 } from './constants';
 import { logger } from './logger';
-const incidentData: Keyv<DataEntry> = new Keyv(`sqlite://./data/data.sqlite`);
 
 interface DataEntry {
 	messageID: string;
@@ -21,10 +20,12 @@ interface DataEntry {
 	resolved: boolean;
 }
 
-const hook = new WebhookClient(process.env.DISCORD_WEBHOOK_ID!, process.env.DISCORD_WEBHOOK_TOKEN!);
+const incidentData = new Keyv<DataEntry>(`sqlite://./data/data.sqlite`);
+
+const hook = new WebhookClient({ url: process.env.DISCORD_WEBHOOK_URL! });
 logger.info(`Starting with ${hook.id}`);
 
-function embedFromIncident(incident: StatusPageIncident): MessageEmbed {
+function embedFromIncident(incident: StatusPageIncident) {
 	const color =
 		incident.status === 'resolved' || incident.status === 'postmortem'
 			? EMBED_COLOR_GREEN
@@ -38,17 +39,20 @@ function embedFromIncident(incident: StatusPageIncident): MessageEmbed {
 
 	const affectedNames = incident.components.map((c) => c.name);
 
-	const embed = new MessageEmbed()
+	const embed = new EmbedBuilder()
 		.setColor(color)
 		.setTimestamp(new Date(incident.started_at))
 		.setURL(incident.shortlink)
 		.setTitle(incident.name)
-		.setFooter(incident.id);
+		.setFooter({ text: incident.id });
 
 	for (const update of incident.incident_updates.reverse()) {
-		const updateDT = DateTime.fromISO(update.created_at);
-		const timeString = `<t:${Math.floor(updateDT.toSeconds())}:R>`;
-		embed.addField(`${update.status.charAt(0).toUpperCase()}${update.status.slice(1)} (${timeString})`, update.body);
+		const updateDT = new Date(update.created_at);
+		const timeString = `<t:${Math.floor(updateDT.getTime() / 1000)}:R>`;
+		embed.addFields({
+			name: `${update.status.charAt(0).toUpperCase()}${update.status.slice(1)} (${timeString})`,
+			value: update.body,
+		});
 	}
 
 	const descriptionParts = [`• Impact: ${incident.impact}`];
@@ -69,11 +73,13 @@ function isResolvedStatus(status: string) {
 async function updateIncident(incident: StatusPageIncident, messageID?: string) {
 	const embed = embedFromIncident(incident);
 	try {
-		const message = await (messageID ? hook.editMessage(messageID, embed) : hook.send(embed));
+		const message = await (messageID
+			? hook.editMessage(messageID, { embeds: [embed] })
+			: hook.send({ embeds: [embed] }));
 		logger.debug(`setting: ${incident.id} to message: ${message.id}`);
 		await incidentData.set(incident.id, {
 			incidentID: incident.id,
-			lastUpdate: DateTime.now().toISO(),
+			lastUpdate: new Date().toISOString(),
 			messageID: message.id,
 			resolved: isResolvedStatus(incident.status),
 		});
@@ -104,8 +110,8 @@ async function check() {
 				continue;
 			}
 
-			const incidentUpdate = DateTime.fromISO(incident.updated_at ?? incident.created_at);
-			if (DateTime.fromISO(data.lastUpdate) < incidentUpdate) {
+			const incidentUpdate = new Date(incident.updated_at ?? incident.created_at);
+			if (new Date(data.lastUpdate) < incidentUpdate) {
 				logger.info(`update incident: ${incident.id}`);
 				void updateIncident(incident, data.messageID);
 			}
