@@ -1,17 +1,18 @@
-import { WebhookClient, EmbedBuilder } from 'discord.js';
-import { fetch } from 'undici';
+import { EmbedBuilder, WebhookClient } from 'discord.js';
 import Keyv from 'keyv';
+import { fetch } from 'undici';
 
-import type { StatusPageIncident, StatusPageResult } from './interfaces/StatusPage';
 import {
-	EMBED_COLOR_GREEN,
-	EMBED_COLOR_RED,
-	EMBED_COLOR_ORANGE,
-	EMBED_COLOR_YELLOW,
-	EMBED_COLOR_BLACK,
 	API_BASE,
+	EMBED_COLOR_BLACK,
+	EMBED_COLOR_GREEN,
+	EMBED_COLOR_ORANGE,
+	EMBED_COLOR_RED,
+	EMBED_COLOR_YELLOW,
 } from './constants';
 import { logger } from './logger';
+
+import type { StatusPageIncident, StatusPageResult } from './interfaces/StatusPage';
 
 interface DataEntry {
 	messageID: string;
