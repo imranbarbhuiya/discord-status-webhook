@@ -9,10 +9,12 @@ import {
 	EMBED_COLOR_ORANGE,
 	EMBED_COLOR_RED,
 	EMBED_COLOR_YELLOW,
-} from './constants';
-import { logger } from './logger';
+} from './constants.js';
+import { logger } from './logger.js';
 
 import type { StatusPageIncident, StatusPageResult } from './interfaces/StatusPage';
+
+import 'dotenv/config';
 
 interface DataEntry {
 	messageID: string;
@@ -99,7 +101,14 @@ async function check() {
 		const json = (await fetch(`${API_BASE}/incidents.json`).then((r) => r.json())) as StatusPageResult;
 		const { incidents } = json;
 
-		for (const incident of incidents.reverse()) {
+		const filteredIncidents = incidents.filter((i) => {
+			const lastUpdate = new Date(i.incident_updates[0].created_at);
+			return lastUpdate.getTime() > Date.now() - 1000 * 60 * 60 * 24 * 5;
+		});
+
+		logger.info(`found ${filteredIncidents.length} new incidents`);
+
+		for (const incident of filteredIncidents.reverse()) {
 			const data = await incidentData.get(incident.id);
 			if (!data) {
 				if (isResolvedStatus(incident.status)) {
