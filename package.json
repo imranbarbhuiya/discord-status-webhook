@@ -11,8 +11,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "tsup",
-		"start": "node .",
-		"deploy": "node --unhandled-rejections=strict --enable-source-maps .",
+		"start": "node --enable-source-maps .",
 		"lint": "eslint src --ext .ts --cache --fix",
 		"format": "prettier --write \"**/*.{ts,js,json,yml,yaml}\" --cache",
 		"postinstall": "husky install .github/husky",
@@ -26,7 +25,7 @@
 	],
 	"dependencies": {
 		"@keyv/sqlite": "^3.5.3",
-		"discord.js": "^14.0.3",
+		"discord.js": "^14.2.0",
 		"dotenv": "^16.0.1",
 		"keyv": "^4.3.3",
 		"pino": "^8.3.0",
