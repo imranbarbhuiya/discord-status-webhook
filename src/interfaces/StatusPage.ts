@@ -1,68 +1,68 @@
 export interface StatusPageResult {
-	page: StatusPagePageInformation;
 	incidents: StatusPageIncident[];
+	page: StatusPagePageInformation;
 }
 
 export interface StatusPagePageInformation {
 	id: string;
 	name: string;
-	url: string;
 	time_zone: string;
 	updated_at: string;
+	url: string;
 }
 
 export interface StatusPageIncident {
-	id: string;
-	name: string;
-	status: StatusPageIncidentStatus;
+	components: StatusPageComponent[];
 	created_at: string;
-	updated_at: string | null;
-	monitoring_at: string | null;
-	resolved_at: string | null;
+	id: string;
 	impact: StatusPageIncidentImpact;
+	incident_updates: StatusPageIncidentUpdate[];
+	monitoring_at: string | null;
+	name: string;
+	page_id: string;
+	resolved_at: string | null;
 	shortlink: string;
 	started_at: string;
-	page_id: string;
-	incident_updates: StatusPageIncidentUpdate[];
-	components: StatusPageComponent[];
+	status: StatusPageIncidentStatus;
+	updated_at: string | null;
 }
 
 export interface StatusPageIncidentUpdate {
-	id: string;
-	status: string;
-	body: string;
-	incident_id: string;
-	created_at: string;
-	update_at: string;
-	display_at: string;
 	affected_components: StatusPageComponentUpdate[];
-	deliver_notifications: boolean;
+	body: string;
+	created_at: string;
 	custom_tweet: string | null;
+	deliver_notifications: boolean;
+	display_at: string;
+	id: string;
+	incident_id: string;
+	status: string;
 	tweet_id: string | null;
+	update_at: string;
 }
 
-export type StatusPageIncidentStatus = 'investigating' | 'identified' | 'monitoring' | 'resolved' | 'postmortem';
-export type StatusPageIncidentImpact = 'none' | 'minor' | 'major' | 'critical';
+export type StatusPageIncidentStatus = 'identified' | 'investigating' | 'monitoring' | 'postmortem' | 'resolved';
+export type StatusPageIncidentImpact = 'critical' | 'major' | 'minor' | 'none';
 
 export interface StatusPageComponent {
+	created_at: string;
+	description: string;
+	group: boolean;
+	group_id: string | null;
 	id: string;
 	name: string;
-	status: string;
-	created_at: string;
-	updated_at: string;
+	only_show_if_degraded: boolean;
+	page_id: string;
 	position: number;
-	description: string;
 	showcase: boolean;
 	start_date: string | null;
-	group_id: string | null;
-	page_id: string;
-	group: boolean;
-	only_show_if_degraded: boolean;
+	status: string;
+	updated_at: string;
 }
 
 export interface StatusPageComponentUpdate {
 	code: string;
 	name: string;
-	old_status: string;
 	new_status: string;
+	old_status: string;
 }

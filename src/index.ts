@@ -1,3 +1,7 @@
+import 'dotenv/config';
+import process from 'node:process';
+import { setInterval } from 'node:timers';
+
 import { EmbedBuilder, WebhookClient } from 'discord.js';
 import Keyv from 'keyv';
 import { fetch } from 'undici';
@@ -14,12 +18,10 @@ import { logger } from './logger.js';
 
 import type { StatusPageIncident, StatusPageResult } from './interfaces/StatusPage';
 
-import 'dotenv/config';
-
 interface DataEntry {
-	messageID: string;
 	incidentID: string;
 	lastUpdate: string;
+	messageID: string;
 	resolved: boolean;
 }
 
@@ -40,7 +42,7 @@ function embedFromIncident(incident: StatusPageIncident) {
 						? EMBED_COLOR_YELLOW
 						: EMBED_COLOR_BLACK;
 
-	const affectedNames = incident.components.map((c) => c.name);
+	const affectedNames = incident.components.map((component) => component.name);
 
 	const embed = new EmbedBuilder()
 		.setColor(color)
@@ -51,7 +53,7 @@ function embedFromIncident(incident: StatusPageIncident) {
 
 	for (const update of incident.incident_updates.reverse()) {
 		const updateDT = new Date(update.created_at);
-		const timeString = `<t:${Math.floor(updateDT.getTime() / 1000)}:R>`;
+		const timeString = `<t:${Math.floor(updateDT.getTime() / 1_000)}:R>`;
 		embed.addFields({
 			name: `${update.status.charAt(0).toUpperCase()}${update.status.slice(1)} (${timeString})`,
 			value: update.body,
@@ -91,6 +93,7 @@ async function updateIncident(incident: StatusPageIncident, messageID?: string) 
 			logger.error(`error during hook update on incident ${incident.id} message: ${messageID}\n`, error);
 			return;
 		}
+
 		logger.error(`error during hook sending on incident ${incident.id}\n`, error);
 	}
 }
@@ -99,12 +102,12 @@ async function check() {
 	logger.info('heartbeat');
 
 	try {
-		const json = (await fetch(`${API_BASE}/incidents.json`).then((r) => r.json())) as StatusPageResult;
+		const json = (await fetch(`${API_BASE}/incidents.json`).then((res) => res.json())) as StatusPageResult;
 		const { incidents } = json;
 
-		const filteredIncidents = incidents.filter((i) => {
-			const lastUpdate = new Date(i.incident_updates[0].created_at);
-			return lastUpdate.getTime() > Date.now() - 1000 * 60 * 60 * 24 * 5;
+		const filteredIncidents = incidents.filter((incident) => {
+			const lastUpdate = new Date(incident.incident_updates[0].created_at);
+			return lastUpdate.getTime() > Date.now() - 1_000 * 60 * 60 * 24 * 5;
 		});
 
 		logger.info(`found ${filteredIncidents.length} new incidents`);
