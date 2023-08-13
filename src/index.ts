@@ -14,7 +14,6 @@ import {
 	EMBED_COLOR_RED,
 	EMBED_COLOR_YELLOW,
 } from './constants.js';
-import { logger } from './logger.js';
 
 import type { StatusPageIncident, StatusPageResult } from './interfaces/StatusPage';
 
@@ -25,10 +24,10 @@ interface DataEntry {
 	resolved: boolean;
 }
 
-const incidentData = new Keyv<DataEntry>(`sqlite://./data/data.sqlite`);
+const incidentData = new Keyv<DataEntry>(`sqlite://data.sqlite`);
 
 const hook = new WebhookClient({ url: process.env.DISCORD_WEBHOOK_URL! });
-logger.info(`Starting with ${hook.id}`);
+console.info(`Starting with ${hook.id}`);
 
 function embedFromIncident(incident: StatusPageIncident) {
 	const color =
@@ -72,16 +71,16 @@ function embedFromIncident(incident: StatusPageIncident) {
 }
 
 function isResolvedStatus(status: string) {
-	return ['resolved', 'postmortem'].some((stat) => stat === status);
+	return ['resolved', 'postmortem'].includes(status);
 }
 
 async function updateIncident(incident: StatusPageIncident, messageID?: string) {
 	const embed = embedFromIncident(incident);
 	try {
 		const message = await (messageID
-			? hook.editMessage(messageID, { embeds: [embed] })
-			: hook.send({ embeds: [embed] }));
-		logger.debug(`setting: ${incident.id} to message: ${message.id}`);
+			? hook.editMessage(messageID, { embeds: [embed], threadId: process.env.THREAD_ID })
+			: hook.send({ embeds: [embed], threadId: process.env.THREAD_ID, username: 'D-API Status' }));
+		console.debug(`setting: ${incident.id} to message: ${message.id}`);
 		await incidentData.set(incident.id, {
 			incidentID: incident.id,
 			lastUpdate: new Date().toISOString(),
@@ -90,16 +89,16 @@ async function updateIncident(incident: StatusPageIncident, messageID?: string) 
 		});
 	} catch (error) {
 		if (messageID) {
-			logger.error(`error during hook update on incident ${incident.id} message: ${messageID}\n`, error);
+			console.error(`error during hook update on incident ${incident.id} message: ${messageID}\n`, error);
 			return;
 		}
 
-		logger.error(`error during hook sending on incident ${incident.id}\n`, error);
+		console.error(`error during hook sending on incident ${incident.id}\n`, error);
 	}
 }
 
 async function check() {
-	logger.info('heartbeat');
+	console.info('heartbeat');
 
 	try {
 		const json = (await fetch(`${API_BASE}/incidents.json`).then((res) => res.json())) as StatusPageResult;
@@ -110,7 +109,7 @@ async function check() {
 			return lastUpdate.getTime() > Date.now() - 1_000 * 60 * 60 * 24 * 5;
 		});
 
-		logger.info(`found ${filteredIncidents.length} new incidents`);
+		console.info(`found ${filteredIncidents.length} new incidents`);
 
 		for (const incident of filteredIncidents.reverse()) {
 			const data = await incidentData.get(incident.id);
@@ -119,21 +118,22 @@ async function check() {
 					continue;
 				}
 
-				logger.info(`new incident: ${incident.id}`);
+				console.info(`new incident: ${incident.id}`);
 				void updateIncident(incident);
 				continue;
 			}
 
 			const incidentUpdate = new Date(incident.updated_at ?? incident.created_at);
 			if (new Date(data.lastUpdate) < incidentUpdate) {
-				logger.info(`update incident: ${incident.id}`);
+				console.info(`update incident: ${incident.id}`);
 				void updateIncident(incident, data.messageID);
 			}
 		}
 	} catch (error) {
-		logger.error(`error during fetch and update routine:\n`, error);
+		console.error(`error during fetch and update routine:\n`, error);
 	}
 }
 
+// eslint-disable-next-line unicorn/prefer-top-level-await
 void check();
 setInterval(() => void check(), 60_000 * 5);
