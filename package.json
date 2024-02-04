@@ -28,7 +28,6 @@
 		"discord.js": "^14.14.1",
 		"dotenv": "^16.4.1",
 		"keyv": "^4.5.4",
-		"pino": "^8.18.0",
 		"undici": "^6.6.0"
 	},
 	"devDependencies": {

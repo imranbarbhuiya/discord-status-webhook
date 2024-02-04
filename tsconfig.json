@@ -3,14 +3,12 @@
 		"strict": true,
 		"moduleResolution": "node",
 		"module": "esnext",
-		"target": "es2019",
+		"target": "esnext",
 		"lib": ["esnext"],
 		"alwaysStrict": true,
 		"pretty": true,
 		"incremental": true,
-		"importHelpers": true,
 		"esModuleInterop": true,
 		"noEmit": true
-	},
-	"exclude": ["**/*.test.ts"]
+	}
 }
